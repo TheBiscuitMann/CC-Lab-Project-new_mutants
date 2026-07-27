@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include "src/ast/ast.h"
 #include "src/semantic/semantic.h"
-#include "src/semantic/symtab.h"
+#include "src/symbol_table/symtab.h"
 
 // External functions and variables provided by your teammate's lexer
 extern int yylex();

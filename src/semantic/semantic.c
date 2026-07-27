@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "semantic.h"
-#include "symtab.h"
+#include "../symbol_table/symtab.h"
 
 // Recursively walks the tree to check rules
 void check_semantics(ASTNode *node) {
