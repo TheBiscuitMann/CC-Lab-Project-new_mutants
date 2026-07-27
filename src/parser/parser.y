@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "src/ast/ast.h"
+#include "src/semantic/semantic.h"
+#include "src/symbol_table/symtab.h"
 
 // External functions and variables provided by your teammate's lexer
 extern int yylex();
@@ -124,11 +126,14 @@ int main(void) {
     // yyparse returns 0 on successful parsing
     if (yyparse() == 0) {
         printf("Parsing completed successfully!\n");
-        printf("\n--- Abstract Syntax Tree ---\n");
         
-        // Print the tree if it was built successfully
         if (root_node != NULL) {
+            printf("\n--- Abstract Syntax Tree ---\n");
             print_ast(root_node, 0);
+            
+            printf("\n--- Semantic Analysis ---\n");
+            check_semantics(root_node);
+            printf("Semantic Analysis completed with 0 errors!\n");
         }
     } else {
         printf("Parsing failed.\n");
