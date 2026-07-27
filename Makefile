@@ -2,7 +2,7 @@ CC	= gcc
 LEXER	= src/lexer/lexer.l
 PARSER	= src/parser/parser.y
 AST	= src/ast/ast.c
-SYMTAB	= src/semantic/symtab.c
+SYMTAB	= src/symbol_table/symtab.c
 SEMANTIC	= src/semantic/semantic.c
 TARGET	= compiler
 
