@@ -4,7 +4,7 @@
 #include "src/ast/ast.h"
 #include "src/semantic/semantic.h"
 #include "src/symbol_table/symtab.h"
-
+#include "src/codegen/tac.h"
 // External functions and variables provided by your teammate's lexer
 extern int yylex();
 extern int yylineno;
@@ -134,6 +134,7 @@ int main(void) {
             printf("\n--- Semantic Analysis ---\n");
             check_semantics(root_node);
             printf("Semantic Analysis completed with 0 errors!\n");
+	    generate_tac(root_node);
         }
     } else {
         printf("Parsing failed.\n");
