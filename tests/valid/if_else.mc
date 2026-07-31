@@ -1,11 +1,7 @@
-```c
-int marks;
-
-marks = 80;
-
-if (marks >= 50) {
-    print marks;
+int score;
+score = 75;
+if (score >= 50) {
+    print score;
 } else {
-    print 0;
+    print score;
 }
-```

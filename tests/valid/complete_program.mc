@@ -1,24 +1,15 @@
-```c
 int x;
 int y;
-bool done;
-
+bool flag;
 x = 10;
 y = 0;
-done = false;
-
+flag = true;
 while (x > 0) {
     y = y + x;
     x = x - 1;
 }
-
-if (y > 50) {
-    done = true;
-}
-
-if (done == true) {
+if (flag == true) {
     print y;
 } else {
     print x;
 }
-```
