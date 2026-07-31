@@ -1,17 +1,8 @@
-```c
-int x;
-
-x = 10;
-
-if (x > 0) {
-    int y;
-    y = 5;
+int outer;
+outer = 1;
+while (outer > 0) {
+    int inner;
+    inner = 5;
+    outer = outer - 1;
 }
-
-print y;
-```
-Expected
-
----
-Semantic Error: <br>
-Variable 'y' is out of scope
+inner = 10;

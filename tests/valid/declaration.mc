@@ -1,8 +1,6 @@
-```c
-int a;
-int b;
-float pi;
-bool flag;
-
-flag = true;
-```
+int count;
+float average;
+bool isReady;
+count = 0;
+average = 0.0;
+isReady = false;
