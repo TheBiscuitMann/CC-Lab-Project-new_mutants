@@ -6,7 +6,7 @@ extern int yylineno;
 
 // Creates a standard parent node
 ASTNode* create_node(NodeType type, ASTNode* left, ASTNode* middle, ASTNode* right) {
-    ASTNode* node = (ASTNode*)calloc(sizeof(ASTNode));
+    ASTNode* node = (ASTNode*)calloc(1, sizeof(ASTNode));
     node->type = type;
     node->line = yylineno;
     node->left = left;
