@@ -65,19 +65,11 @@ statement: declaration { $$ = $1; }
          | while_statement { $$ = $1; }
          | print_statement { $$ = $1; }
          | block { $$ = $1; }
+         | error SEMICOLON { $$ = NULL; yyerrok; }
+         | error RBRACE { $$ = NULL; yyerrok; }
          ;
 
 declaration: type IDENTIFIER SEMICOLON { 
-                 // 1. First, check if the variable ALREADY exists in the Symbol Table
-                 if (lookup_symbol($2) != NULL) {
-                     printf("Semantic Error: Redeclaration of variable '%s'.\n", $2);
-                     exit(1);
-                 }
-                 
-                 // 2. If it is safe, officially register the variable and its type
-                 insert_symbol($2, $1->sval); 
-                 
-                 // 3. Build the AST node as usual
                  $$ = create_node(NODE_DECLARATION, $1, create_leaf_str(NODE_IDENTIFIER, $2), NULL); 
              }
            ;
@@ -100,9 +92,8 @@ while_statement: WHILE LPAREN expression RPAREN statement { $$ = create_node(NOD
 print_statement: PRINT expression SEMICOLON { $$ = create_node(NODE_PRINT, $2, NULL, NULL); }
                ;
 
-block: LBRACE { enter_scope(); } statement_list RBRACE { 
-           exit_scope();
-           $$ = create_node(NODE_BLOCK, $3, NULL, NULL); 
+block: LBRACE statement_list RBRACE { 
+           $$ = create_node(NODE_BLOCK, $2, NULL, NULL); 
        }
      ;
 
@@ -133,27 +124,38 @@ expression: expression PLUS expression { $$ = create_node(NODE_BINOP, $1, NULL, 
 
 /* C CODE FUNCTIONS */
 
+int syntax_errors = 0; 
+
 // Called by yyparse on error
 void yyerror(const char *s) {
-    fprintf(stderr, "Error at line %d: %s\n", yylineno, s);
+    syntax_errors++;
+    printf("Syntax Error at line %d: %s near '%s'\n", yylineno, s, yytext); 
 }
 
 int main(void) {
     // yyparse returns 0 on successful parsing
-    if (yyparse() == 0) {
-        printf("Parsing completed successfully!\n");
+    yyparse();
+    
+    if (syntax_errors > 0) {
+        printf("Parsing failed with %d syntax error(s).\n", syntax_errors);
+        return 1;
+    } 
+    
+    printf("Parsing completed successfully!\n");
+    
+    if (root_node != NULL) {
+        printf("\n--- Abstract Syntax Tree ---\n");
+        print_ast(root_node, 0);
         
-        if (root_node != NULL) {
-            printf("\n--- Abstract Syntax Tree ---\n");
-            print_ast(root_node, 0);
-            
-            printf("\n--- Semantic Analysis ---\n");
-            check_semantics(root_node);
-            printf("Semantic Analysis completed with 0 errors!\n");
+        printf("\n--- Semantic Analysis ---\n");
+        check_semantics(root_node);
+        printf("Semantic Analysis completed with %d error(s)!\n", semantic_errors);
+        
+        if (semantic_errors == 0) {
             generate_tac(root_node);
+        } else {
+            printf("\nCode generation skipped due to semantic errors.\n");
         }
-    } else {
-        printf("Parsing failed.\n");
     }
     return 0;
 }
