@@ -1,460 +1,219 @@
-# Compiler Construction Lab Project
+# Mini-C Compiler (`.mc`)
 
-### Design and Implement a Mini Programming Language Compiler using Flex and Bison
+A six-phase compiler front-end for a custom mini-language, built with **Flex**, **Bison**, and **C**.
 
-Department of Computer Science and Engineering
-Metropolitan University, Bangladesh
+Compiler Construction Lab Project — Department of CSE, Metropolitan University Bangladesh.
 
 ---
 
-Welcome to the official repository for the **Compiler Construction Lab Project**!
+## Team
 
-This repository serves as the **official project template and instruction repository** for the Compiler Construction Laboratory course.
+| Name | GitHub | Responsibilities |
+|------|--------|------------------|
+| Mosaddeq (Team Lead) | [@TheBiscuitMann](https://github.com/TheBiscuitMann) | Lexical analyzer, Makefile & build system, three-address code generation, web UI |
+| Fariha Rahman | [@student880](https://github.com/student880) | Parser (grammar), AST construction, symbol table, semantic analyzer, project report |
+| Puspo Gondha Paul | [puspogondhapaul-cloud](https://github.com/puspogondhapaul-cloud) | Test suite (valid & invalid programs, expected outputs) |
 
-Every project group **must fork this repository** and complete the entire project inside their own GitHub repository. This repository is provided only as a project template to help you organize your work. It does not contain the implementation of any required compiler phase. Every group is responsible for designing and implementing their own solution.
+---
 
+## Overview
 
+The compiler reads a source file written in our mini-language (`.mc`) and processes it through six phases:
 
-# Important Notice
+1. **Lexical Analysis** — Flex scanner converts the character stream into tokens, tracking line numbers and reporting invalid characters.
+2. **Syntax Analysis** — Bison LALR(1) parser validates the token stream against the grammar and reports syntax errors with line numbers.
+3. **Abstract Syntax Tree** — the parser's semantic actions build an AST; the tree is printed in indented form.
+4. **Symbol Table** — scoped symbol table records identifiers, their types, and their scope level; supports nested block scoping.
+5. **Semantic Analysis** — walks the AST checking for undeclared variables, redeclaration in the same scope, type mismatches, and invalid assignments.
+6. **Intermediate Code Generation** — emits three-address code (TAC) with temporary variables and labels for control flow.
 
-This repository **does not contain the project solution**.
+The compiler stops and reports errors at the phase where they are detected.
 
-It only contains:
+---
 
-* Project instructions
-* Project manual
-* Repository guidelines
-* GitHub workflow
-* Required directory structure
-* Submission instructions
+## The Language
 
-The complete project specification is provided in:
+**File extension:** `.mc`
 
-> **Compiler Construction Lab Project Manual.pdf**
+**Data types:** `int`, `float`, `bool`
 
-Read the project manual carefully before starting the implementation.
+**Statements**
+- Variable declaration — `int x;`
+- Assignment — `x = 5;`
+- Conditional — `if`, `if`/`else`
+- Loop — `while`
+- Output — `print`
+- Nested blocks `{ ... }` with lexical scoping
 
+**Operators**
 
+| Category | Operators |
+|----------|-----------|
+| Arithmetic | `+` `-` `*` `/` `%` |
+| Relational | `<` `>` `<=` `>=` `==` `!=` |
+| Logical | `&&` `\|\|` `!` |
 
-# Project Objective
+### Sample program
 
-The objective of this project is to design and implement a compiler front-end for a custom programming language using:
+```c
+int x;
+int y;
+x = 10;
+y = 0;
 
-* Flex
-* Bison
-* C/C++
-* Linux
-* Make
-* Git
-* GitHub
+while (x > 0) {
+    y = y + x;
+    x = x - 1;
+}
 
-The project integrates the major phases of compiler construction into one complete software system.
-
-Your compiler must implement:
-
-* Lexical Analysis
-* Syntax Analysis
-* Abstract Syntax Tree (AST)
-* Symbol Table
-* Semantic Analysis
-* Intermediate Code Generation (Three Address Code)
-
-Refer to the Project Manual for the complete language specification and implementation requirements.
-
-
-
-# Repository Workflow
-
-Every project group must strictly follow the workflow below.
-
-```
-Instructor Repository
-        │
-        ▼
-Fork Repository
-        │
-        ▼
-Student Group Repository
-        │
-        ▼
-Regular Development
-        │
-        ▼
-GitHub Repository Submission
+if (y > 50) {
+    print y;
+} else {
+    print x;
+}
 ```
 
-Students **must not develop directly inside this repository.**
+The formal context-free grammar, operator precedence table, and a note on the dangling-else conflict are documented in [`docs/GRAMMAR.md`](docs/GRAMMAR.md).
 
+---
 
+## Requirements
 
-# Step 1: Fork This Repository
+- GCC
+- Flex
+- Bison
+- GNU Make
+- Python 3 and Flask (only for the optional web UI)
 
-Click the **Fork** button located at the top-right corner of this repository.
-
-This will create your own copy of the repository under your GitHub account.
-
-Each group must maintain its own repository.
-
-Do **NOT** request write access to the instructor repository.
-
-
-
-# Step 2: Clone Your Own Repository
-
-Clone **your fork**, not the instructor repository.
-
-Example:
+On Ubuntu / WSL:
 
 ```bash
-git clone https://github.com/your-username/your-repository.git
-cd your-repository
+sudo apt update
+sudo apt install build-essential flex bison
 ```
 
+For the web UI:
 
-
-# Step 3: Rename Your Repository
-
-Rename your repository using the following format:
-
-```
-CC-Lab-Project-GroupName
+```bash
+pip3 install flask
 ```
 
+---
 
+## Build
 
-# Step 4: Add Team Members
+From the project root:
 
-Every member of the project group must be added as a collaborator.
+```bash
+make
+```
 
-GitHub
+This runs Bison, then Flex, then compiles all C sources into a single executable named `compiler`.
 
-Settings
+To remove generated files and the binary:
 
-↓
+```bash
+make clean
+```
 
-Collaborators
+> **Note:** Bison reports `1 shift/reduce conflict`. This is the classic *dangling-else* ambiguity. Bison resolves it by shifting, which correctly binds each `else` to the nearest unmatched `if`. This is expected behaviour, not a defect — see `docs/GRAMMAR.md`.
 
-↓
+---
 
-Add Collaborator
+## Running the compiler
 
-Every member should contribute through their own GitHub account.
+The compiler reads the source program from standard input:
 
+```bash
+./compiler < tests/valid/complete_program.mc
+```
 
+Any `.mc` file can be supplied:
 
-# Step 5: Repository Visibility
+```bash
+./compiler < examples/valid/sample_program.mc
+./compiler < tests/invalid/type_mismatch.mc
+```
 
-Keep your repository **Public** until the evaluation process has been completed.
+The output shows each phase in sequence: the token stream, parse result, AST, symbol table, semantic analysis result, and the generated three-address code.
 
-Do not delete your repository after submission.
+---
 
+## Web Interface (bonus)
 
+A browser-based front-end that runs the actual compiler binary and displays each phase in a tabbed view.
 
-# Project Directory Structure
+```bash
+make                    # the binary must be built first
+python3 web/server.py
+```
 
-Your repository should approximately follow the following structure.
+Then open <http://127.0.0.1:5000> in a browser.
+
+Type or paste a program into the editor and run it. The output panel separates AST, semantic analysis, TAC, and raw compiler output into tabs. The Flask backend invokes the real `./compiler` executable — nothing is simulated.
+
+---
+
+## Test Suite
 
 ```
-project-root/
+tests/
+├── valid/      programs that compile cleanly
+└── invalid/    programs that must be rejected
+```
 
+Each test consists of a `.mc` source file and a `.out` file holding the expected compiler output.
+
+**Valid tests:** arithmetic, assignment, declaration, if_else, while, complete_program
+
+**Invalid tests:** lexical_error, syntax_error, undeclared_variable, redeclaration, type_mismatch, scope_violation, invalid_assignment
+
+Run any test manually:
+
+```bash
+./compiler < tests/invalid/undeclared_variable.mc
+```
+
+---
+
+## Project Structure
+
+```
+CC-Lab-Project-new_mutants/
 ├── docs/
-│
+│   ├── GRAMMAR.md                  formal grammar & precedence
+│   └── Compiler Construction Lab Project Manual.pdf
 ├── src/
-│   ├── lexer/
-│   ├── parser/
-│   ├── ast/
-│   ├── semantic/
-│   └── symbol_table/
-│
+│   ├── lexer/lexer.l               Flex specification
+│   ├── parser/parser.y             Bison grammar & AST actions
+│   ├── ast/                        ast.c, ast.h
+│   ├── symbol_table/               symtab.c, symtab.h
+│   ├── semantic/                   semantic.c, semantic.h
+│   └── codegen/                    tac.c, tac.h
 ├── tests/
-│
+│   ├── valid/
+│   └── invalid/
 ├── examples/
-│
+│   ├── valid/
+│   └── invalid/
+├── web/
+│   ├── server.py                   Flask backend
+│   └── index.html                  browser front-end
 ├── Makefile
-│
-├── README.md
-│
-└── Project Report.pdf
+├── .gitignore
+└── README.md
 ```
 
-You may organize your source code further if necessary, but the overall structure should remain clean and professional.
-
-
-
-# Required Compiler Modules
-
-Your compiler must include the following components.
-
-## Lexical Analyzer
-
-* Token recognition
-* Keywords
-* Identifiers
-* Constants
-* Operators
-* Delimiters
-* Comment handling
-* Lexical error reporting
-
-
-
-## Syntax Analyzer
-
-* Complete CFG implementation
-* Parsing using Bison
-* Syntax error detection
-* Basic error recovery
-
-
-
-## Abstract Syntax Tree
-
-* Build AST during parsing
-* Meaningful node hierarchy
-* AST visualization or printing
-
-
-## Symbol Table
-
-* Variable declarations
-* Nested scopes
-* Identifier lookup
-* Scope management
-
-
-## Semantic Analyzer
-
-Your compiler must detect semantic errors including:
-
-* Undeclared variables
-* Redeclaration
-* Scope violations
-* Type mismatch
-* Invalid assignments
-* Invalid expressions
-
-
-## Intermediate Code Generation
-
-Generate Three Address Code (TAC).
-
-Support:
-
-* Arithmetic expressions
-* Relational expressions
-* Logical expressions
-* Assignment statements
-* if
-* if-else
-* while
-* print
-
-
-# Git Commit Policy
-
-GitHub activity will be considered during evaluation.
-
-Every student is expected to contribute throughout the semester.
-
-Avoid uploading the entire project at the end.
-
-Commit regularly.
-
-Good commit messages:
-
-```
-Add lexer rules for keywords
-
-Implement parser grammar
-
-Create AST node hierarchy
-
-Implement symbol table lookup
-
-Add semantic type checking
-
-Generate TAC for arithmetic expressions
-
-Fix parser conflicts
-
-Improve syntax error recovery
-```
-
-Avoid commit messages like:
-
-```
-update
-
-new
-
-code
-
-final
-
-fix
-
-project
-```
-
-Meaningful commit history reflects professional software development practices.
-
-
-# Branching (Recommended)
-
-You may either:
-
-* work directly on the main branch
-
-or
-
-* create feature branches
-
-Example
-
-```
-feature/lexer
-
-feature/parser
-
-feature/semantic
-
-feature/tac
-```
-
-Merge feature branches into `main` after testing.
-
-
-# .gitignore
-
-A `.gitignore` file is included to prevent generated and temporary files from being tracked by Git.
-
-Examples include:
-
-* Flex generated files
-* Bison generated files
-* Object files
-* Executables
-* IDE configuration files
-* Temporary files
-* Log files
-
-Do not remove the `.gitignore` file.
-
-
-# Coding Guidelines
-
-Write clean and readable code.
-
-Use
-
-* meaningful variable names
-* proper indentation
-* modular design
-* comments where appropriate
-
-Avoid
-
-* unnecessary global variables
-* duplicated code
-* magic numbers
-* excessively long functions
-
-
-# Test Suite
-
-This directory contains sample test programs for the compiler.
-
-- `valid/` contains programs that should compile successfully and produce valid output.
-- `invalid/` contains programs that intentionally violate lexical, syntactic, or semantic rules. Your compiler should detect and report these errors with clear diagnostic messages where possible.
-
-These files are provided as examples only. You are expected to develop additional test cases to thoroughly validate your compiler.
-
-
-# AI Usage Policy
-
-Artificial Intelligence tools are permitted.
-
-Examples include:
-
-* ChatGPT
-* GitHub Copilot
-* Claude
-* Gemini
-
-However,
-
-Every student is expected to fully understand every submitted line of code.
-
-During demonstration and viva, any group member may be asked to explain any part of the implementation.
-
-Failure to explain the implementation may result in mark deductions regardless of whether the compiler functions correctly.
-
-
-# Academic Integrity
-
-The submitted work must be original.
-
-Do not
-
-* copy another group's implementation
-* reuse previous semesters' projects
-* submit downloaded compiler implementations
-
-External resources may be used for learning purposes, but all references must be properly acknowledged where appropriate.
-
-
-# Submission
-
-Submit your:
-
-* GitHub Repository Link
-
-<!-- No ZIP archive should be submitted unless explicitly requested. -->
-
-The submitted repository must include:
-
-* Source Code
-* README
-* Project Report
-* Test Programs
-* Example Programs
-* Build Instructions
-* Execution Instructions
-
-
-# Evaluation
-
-Your project may be evaluated based on:
-
-* Correctness
-* Code quality
-* Documentation
-* GitHub activity
-* Demonstration
-* Presentation
-* Group Viva
-
-A working project alone does not guarantee full marks.
-
-Understanding your implementation is equally important.
-
-
-# Deadline
-
-Refer to the **Compiler Construction Lab Project Manual.pdf** for the official submission deadline.
-
-Late submissions may receive penalties according to the course policy.
+Generated files (`lex.yy.c`, `parser.tab.c`, `parser.tab.h`, `*.o`, `compiler`) are produced by the build and are not tracked in version control.
 
 ---
 
-If you have any questions regarding the project specification, contact the instructor **before** the submission deadline.
+## Repository
 
-Please avoid waiting until the last moment to seek clarification.
+```bash
+git clone git@github.com:TheBiscuitMann/CC-Lab-Project-new_mutants.git
+cd CC-Lab-Project-new_mutants
+make
+```
 
----
-
-This project is intended to integrate everything you have learned throughout the Compiler Construction Laboratory course.
-
-Plan your work, collaborate effectively, commit regularly, and write clean, maintainable code.
-
-Happy Coding!
+Forked from the course template at [KhalidBinSelim/Compiler-Construction-Lab-Project](https://github.com/KhalidBinSelim/Compiler-Construction-Lab-Project).
