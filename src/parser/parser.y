@@ -5,6 +5,7 @@
 #include "src/semantic/semantic.h"
 #include "src/symbol_table/symtab.h"
 #include "src/codegen/tac.h"
+
 // External functions and variables provided by your teammate's lexer
 extern int yylex();
 extern int yylineno;
@@ -66,7 +67,13 @@ statement: declaration { $$ = $1; }
          | block { $$ = $1; }
          ;
 
-declaration: type IDENTIFIER SEMICOLON { $$ = create_node(NODE_DECLARATION, $1, create_leaf_str(NODE_IDENTIFIER, $2), NULL); }
+declaration: type IDENTIFIER SEMICOLON { 
+                 // Officially register the variable and its type into the Symbol Table
+                 insert_symbol($2, $1->sval); 
+                 
+                 // Build the AST node
+                 $$ = create_node(NODE_DECLARATION, $1, create_leaf_str(NODE_IDENTIFIER, $2), NULL); 
+             }
            ;
 
 type: INT { $$ = create_leaf_str(NODE_TYPE, "int"); }
@@ -134,7 +141,7 @@ int main(void) {
             printf("\n--- Semantic Analysis ---\n");
             check_semantics(root_node);
             printf("Semantic Analysis completed with 0 errors!\n");
-	    generate_tac(root_node);
+            generate_tac(root_node);
         }
     } else {
         printf("Parsing failed.\n");
