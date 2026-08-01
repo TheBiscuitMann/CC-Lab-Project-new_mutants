@@ -38,7 +38,7 @@ void exit_scope() {
 }
 
 // Adds a new variable to the table. Returns 0 if already declared in THIS scope.
-int insert_symbol(char *name, char *type) {
+int insert_symbol(char *name, char *type, int line) {
     // Check if it already exists in the CURRENT scope
     Symbol *curr = symbol_table;
     while (curr != NULL) {
@@ -53,6 +53,7 @@ int insert_symbol(char *name, char *type) {
     new_sym->name = strdup(name);
     new_sym->type = strdup(type);
     new_sym->scope_level = current_scope;
+    new_sym->line_declared = line; 
     new_sym->next = symbol_table;
     symbol_table = new_sym;
     
