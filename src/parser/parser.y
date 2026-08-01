@@ -68,10 +68,16 @@ statement: declaration { $$ = $1; }
          ;
 
 declaration: type IDENTIFIER SEMICOLON { 
-                 // Officially register the variable and its type into the Symbol Table
+                 // 1. First, check if the variable ALREADY exists in the Symbol Table
+                 if (lookup_symbol($2) != NULL) {
+                     printf("Semantic Error: Redeclaration of variable '%s'.\n", $2);
+                     exit(1);
+                 }
+                 
+                 // 2. If it is safe, officially register the variable and its type
                  insert_symbol($2, $1->sval); 
                  
-                 // Build the AST node
+                 // 3. Build the AST node as usual
                  $$ = create_node(NODE_DECLARATION, $1, create_leaf_str(NODE_IDENTIFIER, $2), NULL); 
              }
            ;
@@ -94,7 +100,10 @@ while_statement: WHILE LPAREN expression RPAREN statement { $$ = create_node(NOD
 print_statement: PRINT expression SEMICOLON { $$ = create_node(NODE_PRINT, $2, NULL, NULL); }
                ;
 
-block: LBRACE statement_list RBRACE { $$ = create_node(NODE_BLOCK, $2, NULL, NULL); }
+block: LBRACE { enter_scope(); } statement_list RBRACE { 
+           exit_scope();
+           $$ = create_node(NODE_BLOCK, $3, NULL, NULL); 
+       }
      ;
 
 expression: expression PLUS expression { $$ = create_node(NODE_BINOP, $1, NULL, $3); $$->op = PLUS; }
