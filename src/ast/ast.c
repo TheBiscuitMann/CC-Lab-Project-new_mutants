@@ -2,11 +2,13 @@
 #include <stdlib.h>
 #include <string.h>
 #include "ast.h"
+extern int yylineno;
 
 // Creates a standard parent node
 ASTNode* create_node(NodeType type, ASTNode* left, ASTNode* middle, ASTNode* right) {
-    ASTNode* node = (ASTNode*)malloc(sizeof(ASTNode));
+    ASTNode* node = (ASTNode*)calloc(sizeof(ASTNode));
     node->type = type;
+    node->line = yylineno;
     node->left = left;
     node->middle = middle;
     node->right = right;
@@ -59,7 +61,7 @@ ASTNode* print_ast(ASTNode* node, int level) {
         case NODE_IDENTIFIER: printf("Identifier (%s)\n", node->sval); break;
         case NODE_INT_LIT: printf("IntLit (%d)\n", node->ival); break;
         case NODE_FLOAT_LIT: printf("FloatLit (%f)\n", node->fval); break;
-        case NODE_BOOL_LIT: printf("BoolLit (%d)\n", node->ival); break;
+        case NODE_BOOL_LIT: printf("BoolLit (%s)\n", node->sval); break;
     }
 
     // Recursively print children (pushing them in one level deeper)
