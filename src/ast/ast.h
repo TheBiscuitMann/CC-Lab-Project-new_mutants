@@ -37,6 +37,7 @@ typedef struct ASTNode {
     
     // Operator token (like PLUS, MINUS) for BinOps/UnOps
     int op;
+    int line;
 } ASTNode;
 
 // Function prototypes so other files can use them
